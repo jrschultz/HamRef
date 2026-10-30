@@ -2,7 +2,34 @@
 
 _Note:_ Frequencies in **bold** have overlap
 
-## 70CM: 430-450MHz
+## FRS/GMRS 462.55-462.725MHz & 467.55-467.725MHz 👦👧
+
+| Frequency | Channel | Power | Notes |
+|-----------|---------|-------|-------|
+| 462.5500 | 15 | 2W | 🗣️ Simplex |
+| 462.5625 | 1	| 2W | 🗣️ Simplex |
+| 462.5750 | 16	| 2W | 🗣️ Simplex |
+| 462.5875 | 2	| 2W | 🗣️ Simplex |
+| 462.6000 | 17	| 2W | 🗣️ Simplex |
+| 462.6125 | 3	| 2W | 🗣️ Simplex |
+| 462.6250 | 18	| 2W | 🗣️ Simplex |
+| 462.6375 | 4	| 2W | 🗣️ Simplex |
+| 462.6500 | 19	| 2W | 🗣️ Simplex |
+| 462.6625 | 5	| 2W | 🗣️ Simplex |
+| 462.6750 | 20	| 2W | 🗣️ Simplex |
+| 462.6875 | 6	| 2W | 🗣️ Simplex |
+| 462.7000 | 21	| 2W | 🗣️ Simplex |
+| 462.7125 | 7	| 2W | 🗣️ Simplex |
+| 462.7250 | 22	| 2W | 🗣️ Simplex |
+| 467.5625 | 8🤏 | 0.5W | 🗣️ Low Power |
+| 467.5875 | 9🤏 | 0.5W | 🗣️ Low Power |
+| 467.6125 | 10🤏 | 0.5W | 🗣️ Low Power |
+| 467.6375 | 11🤏 | 0.5W | 🗣️ Low Power |
+| 467.6625 | 12🤏 | 0.5W | 🗣️ Low Power |
+| 467.6875 | 13🤏 | 0.5W | 🗣️ Low Power |
+| 467.7125 | 14🤏 | 0.5W | 🗣️ Low Power |
+
+## 70CM: 430-450MHz 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -30,7 +57,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 446.800–446.975 | 🤖 Digital Modes |
 | 447.000–450.000 | 🔁 Repeater Inputs |
 
-## 2M: 144-148MHz
+## 2M: 144-148MHz 🐖
 
 | Frequency              | Modes & Such |
 |------------------------|------------------------------------------------------------------------------|
@@ -66,7 +93,7 @@ _Note:_ Frequencies in **bold** have overlap
 | **147.435–147.585** | 🤖 Wide Band Digital Modes |
 | 147.600–147.990 | 🔁 FM/Digital/Linear Repeater Inputs |
 
-## 6M: 50-54MHz
+## 6M: 50-54MHz 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -90,7 +117,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 52-53 | 🔁 FM Voice Repeater Inputs |
 | 53-54 | 🔁 FM Voice Repeater Inputs |
 
-## 10M: 28-29.700MHz 🌞 DX 🎯 28.850MHz
+## 10M: 28-29.700MHz 🌞 DX 🎯 28.850MHz 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -102,7 +129,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 29.521-29.700 | 📻 **FM** |
 
 
-## 11M: 26.965-27.405MHz CITIZEN BAND 👍🚛
+## 11M: 26.965-27.405MHz CITIZEN BAND 🧢👍🚛
 | Frequency | Channel | Use |
 |-----------|--------------|----------|
 | 26.965 | **01** | 🗣️ General Use |
@@ -146,7 +173,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 27.395 | **39** | 🗣️ Single Sideband (SSB) | 
 | 27.405 | **40** | 🛣️ Upper highway / General Use | 
 
-## 12M: 24.890-990MHz 🌞 DX 🎯 28.940MHz 🌐WARC
+## 12M: 24.890-990MHz 🌞 DX 🎯 28.940MHz 🌐WARC 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -159,7 +186,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 24.979-990 | 🗣️ **PHONE** | 
 
 
-## 15M: 21-21.450MHZ 🌞 DX 🎯 21.225MHz 🇺🇸G>21.275
+## 15M: 21-21.450MHZ 🌞 DX 🎯 21.225MHz 🇺🇸G>21.275 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -169,7 +196,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 21.341-343 | 📺 **SSTV**  |
 | 21.344-450 | 🗣️ **PHONE** |
 	
-## 17M: 18.068-18.168MHz 🌞 DX 🎯 18.118MHz 🌐WARC
+## 17M: 18.068-18.168MHz 🌞 DX 🎯 18.118MHz 🌐WARC 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -177,7 +204,7 @@ _Note:_ Frequencies in **bold** have overlap
 | **18.095-110** | 🤖 **DIGI** |
 | 18.111-168 | 🗣️ **PHONE** |
 
-## 20M: 14-14.350MHz 🌞🌙 DX 🎯 14.175MHz 🇺🇸G>14.225
+## 20M: 14-14.350MHz 🌞🌙 DX 🎯 14.175MHz 🇺🇸G>14.225 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -187,7 +214,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 14.230-236 | 📺 **SSTV** |
 | 14.236-350 | 🗣️ **PHONE** |
 
-## 30M: 10-10.150MHz 🌞🌙 DX 🎯 10.125MHz 🌐WARC
+## 30M: 10-10.150MHz 🌞🌙 DX 🎯 10.125MHz 🌐WARC 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -195,7 +222,7 @@ _Note:_ Frequencies in **bold** have overlap
 | **10.130-150** | 🤖 **DIGI** |
 | **10.140-150** | 🤜 **CW** |
 
-## 40M: 7-7.300MHz  🌙🌞 NVIS 🎯 7.150MHz 🇺🇸G>7.175 
+## 40M: 7-7.300MHz  🌙🌞 NVIS 🎯 7.150MHz 🇺🇸G>7.175 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -206,7 +233,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 7.165-7.175 | 📺 **SSTV** |
 | 7.175-300 | 🗣️ **PHONE** |
 
-## 60M: 5.3-5.4MHz 🌙🌞 NVIS CHANNELIZED
+## 60M: 5.3-5.4MHz 🌙🌞 NVIS CHANNELIZED 🐖
 
 | Frequency | Channel | Use |
 |-----------|--------------|----------|
@@ -228,7 +255,7 @@ _Note:_ Frequencies in **bold** have overlap
 |-----------|--------------|----------|
 | **5.403.5-5.406.5** | **5** | 🤜🗣️🤖 |
 
-## 80M: 3.5-4MHz  ❄️🌙🌞 NVIS 🎯 3.75MHz 🇺🇸G>3.8 
+## 80M: 3.5-4MHz  ❄️🌙🌞 NVIS 🎯 3.75MHz 🇺🇸G>3.8 🐖
 
 | Frequency | Modes & Such |
 |-----------|--------------|
@@ -240,7 +267,7 @@ _Note:_ Frequencies in **bold** have overlap
 | 3.842-3.845 | 📺 **SSTV**|
 | 3.845-4 | 🗣️ **PHONE** |
 
-## 160M: 1.8-2Hz  ❄️🌙🌞 NVIS 🎯 1.9MHz
+## 160M: 1.8-2Hz  ❄️🌙🌞 NVIS 🎯 1.9MHz 🐖
 | Frequency | Modes & Such |
 |-----------|--------------|
 | **1.8-1.840** | 🤜 **CW** |
