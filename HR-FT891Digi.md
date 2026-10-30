@@ -114,3 +114,5 @@ Press ```F5``` for all the audio values.
 | Auto Gain Control | Muted |
 
 ### ⚠️ NOTE: These settings will change when you disconnect/reconnect the radio. So recheck as needed.
+
+73 de VE5REV
