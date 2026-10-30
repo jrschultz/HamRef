@@ -1,4 +1,4 @@
-# 🗃️ REF CARD - 🇨🇦 RADIO BANDS
+# 🗃️ HAMREF - 🇨🇦 BAND PLANS
 
 _Note:_ Frequencies in **bold** have overlap
 
