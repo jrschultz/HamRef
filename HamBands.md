@@ -246,3 +246,5 @@ _Note:_ Frequencies in **bold** have overlap
 | **1.8-1.840** | 🤜 **CW** |
 | **1.8-1.810** | 🤖 **DIGI** |
 | 1.840-2 | 🗣️ **PHONE** |
+
+73 de VE5REV
