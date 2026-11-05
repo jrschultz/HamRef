@@ -20,10 +20,10 @@ sudo apt install cargo-1.91 libpulse-dev libasound2-dev
 
 ### Install Xara Modem
 
-⚠️ **NOTE:** use --features registered if you have a registered version of VARA. Omit otherwise.
+⚠️ **NOTE:** add ```--features registered``` if you have a registered version of VARA. Omit otherwise.
 
 ```bash
-cargo-1.91 install --locked --force --features registered --git https://github.com/x0rro/xara xara
+cargo-1.91 install --locked --force --git https://github.com/x0rro/xara xara
 ```
 
 ## ⚙️ CONFIGURATION
