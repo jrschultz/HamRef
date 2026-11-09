@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MJARC Net Logger v.1</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --text: #1a1d21;
+      --muted: #5c6570;
+      --border: #d0d7de;
+      --accent: #0b6bcb;
+      --accent-hover: #0958a8;
+      --success: #1a7f37;
+      --danger: #cf222e;
+      --warning: #9a6700;
+      --ncs: #8250df;
+      --row-hover: #f0f3f6;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+      --radius: 8px;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --accent-hover: #58a6ff;
+      --success: #3fb950;
+      --danger: #f85149;
+      --warning: #d29922;
+      --ncs: #a371f7;
+      --row-hover: #21262d;
+      --shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+      font-size: 15px;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo span.ver {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button, .btn {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: var(--radius);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s, border-color .15s, color .15s;
+      white-space: nowrap;
+    }
+
+    button:hover, .btn:hover { background: var(--row-hover); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    button.success { background: var(--success); color: #fff; border-color: var(--success); }
+    button.danger  { background: var(--danger);  color: #fff; border-color: var(--danger); }
+    button.ghost   { background: transparent; }
+
+    .icon-btn {
+      padding: 5px 8px;
+      min-width: 32px;
+      justify-content: center;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      padding: 16px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .roster-panel { order: -1; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .sticky-entry {
+      position: sticky;
+      top: 58px; /* below main header */
+      z-index: 50;
+    }
+
+    .sticky-roster {
+      position: sticky;
+      top: 58px;
+      z-index: 40;
+      align-self: start; /* prevent stretching */
+    }
+
+    @media (max-width: 900px) {
+      .sticky-entry,
+      .sticky-roster {
+        position: static; /* avoid awkward sticky on small screens */
+      }
+    }
+
+    .panel-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 600;
+      background: var(--bg);
+    }
+
+    .panel-body { padding: 14px; }
+
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      padding: 8px 14px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .tab-btn:hover { background: var(--row-hover); }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .script-block {
+      margin-bottom: 18px;
+    }
+    .script-block h3 {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+    .script-block p, .script-block li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .script-block ul { padding-left: 1.3em; }
+    .script-note {
+      background: var(--bg);
+      border-left: 3px solid var(--warning);
+      padding: 8px 12px;
+      margin: 10px 0;
+      font-size: 0.9rem;
+    }
+
+    /* Net controls */
+    .net-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .timer-box {
+      font-variant-numeric: tabular-nums;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      min-width: 140px;
+    }
+
+    .timer-box .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .timer-box .value { font-size: 1.35rem; font-weight: 700; }
+
+    .stats {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .stat { text-align: center; }
+    .stat .num { font-size: 1.4rem; font-weight: 700; }
+    .stat .lbl { font-size: 0.75rem; color: var(--muted); }
+
+    /* Form */
+    .checkin-form {
+      display: grid;
+      grid-template-columns: 180px 1fr 1fr 1.4fr auto;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: end;
+    }
+
+    @media (max-width: 700px) {
+      .checkin-form { grid-template-columns: 1fr 1fr; }
+      .checkin-form .full { grid-column: 1 / -1; }
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      font: inherit;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    input:focus, textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: -1px;
+    }
+
+    .call-row {
+      display: flex;
+      gap: 4px;
+    }
+    .call-row input {
+      flex: 1;
+      text-transform: uppercase;
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      letter-spacing: 0.06em;
+      min-width: 0;
+    }
+
+    .suggestions {
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-height: 120px;
+      overflow-y: auto;
+      width: 100%;
+    }
+    .suggestions .sug-item {
+      padding: 5px 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      font-size: 0.88rem;
+      background: var(--surface);
+      transition: background .12s, border-color .12s;
+    }
+    .suggestions .sug-item:hover,
+    .suggestions .sug-item.active {
+      background: var(--row-hover);
+      border-color: var(--accent);
+    }
+    .suggestions .sug-call {
+      font-weight: 700;
+      font-family: ui-monospace, monospace;
+      letter-spacing: 0.02em;
+    }
+    .suggestions .sug-info {
+      font-size: 0.78rem;
+      color: var(--muted);
+      max-width: 110px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Check-in list */
+    .checkin-list { list-style: none; }
+
+    .checkin-item {
+      display: grid;
+      grid-template-columns: 28px 36px 100px 1fr 1.2fr 1.4fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+
+    .checkin-item:hover { background: var(--row-hover); }
+    .checkin-item.ncs { border-left: 4px solid var(--ncs); }
+    .checkin-item.acked { opacity: 0.85; }
+    .checkin-item.acked .call { text-decoration: none; }
+
+    .checkin-item .ack-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .checkin-item .ack-box input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--success);
+    }
+
+    .checkin-item .pos {
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .checkin-item .call {
+      font-weight: 700;
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      letter-spacing: 0.02em;
+    }
+
+    .checkin-item .ncs-badge {
+      font-size: 0.65rem;
+      background: var(--ncs);
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .checkin-item .meta { font-size: 0.9rem; color: var(--muted); }
+    .checkin-item .comment { font-size: 0.9rem; }
+
+    .checkin-item .editable {
+      cursor: text;
+      border-radius: 4px;
+      padding: 2px 4px;
+      min-height: 1.3em;
+      outline: none;
+    }
+    .checkin-item .editable:hover {
+      background: var(--bg);
+      box-shadow: inset 0 0 0 1px var(--border);
+    }
+    .checkin-item .editable:focus {
+      background: var(--surface);
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .move-to-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .move-to-wrap input {
+      width: 42px;
+      padding: 3px 4px;
+      font-size: 0.8rem;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Roster */
+    .roster-list { list-style: none; max-height: 60vh; overflow-y: auto; }
+
+    .roster-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .roster-item:hover { background: var(--row-hover); }
+    .roster-item .call {
+      font-weight: 700;
+      font-family: ui-monospace, monospace;
+      min-width: 70px;
+    }
+    .roster-item .info { flex: 1; font-size: 0.85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+    }
+    .modal-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body { padding: 16px; }
+    .modal-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .form-row { margin-bottom: 12px; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      z-index: 300;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    .empty {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px 16px 30px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .lookup-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+      min-height: 1.2em;
+    }
+
+    .lookup-status.ok { color: var(--success); }
+    .lookup-status.err { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      MJARC 🫎 Net Logger
+      <span class="ver">v0.1</span>
+    </div>
+    <div class="header-actions">
+      <button id="btnTheme" class="ghost icon-btn" title="Toggle light/dark mode">🌓</button>
+      <button id="btnHelp" class="ghost" title="How to use this logger">? Help</button>
+      <button id="btnSettings" class="ghost" title="QRZ credentials & options">⚙ Settings</button>
+      <button id="btnExport" class="ghost">⬇ Export</button>
+      <button id="btnImport" class="ghost">⬆ Import</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden />
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: Net + Check-ins -->
+    <div class="left-col">
+      <div class="tab-bar">
+        <button type="button" class="tab-btn active" data-tab="logger">Logger</button>
+        <button type="button" class="tab-btn" data-tab="callup">Net Script</button>
+      </div>
+
+      <div id="tab-logger" class="tab-pane active">
+      <div class="panel sticky-entry" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <span>Net Control</span>
+          <span id="netStateBadge" style="font-size:0.8rem;font-weight:500;color:var(--muted);">Idle</span>
+        </div>
+        <div class="panel-body">
+          <div class="net-status">
+            <div>
+              <button id="btnStart" class="success">▶ Start Net</button>
+              <button id="btnStop" class="danger" disabled>■ Stop Net</button>
+              <div id="ncsHint" style="font-size:0.78rem;color:var(--muted);margin-top:6px;max-width:200px;">
+                Add the Net Control (first check-in) before starting the net.
+              </div>
+            </div>
+            <div class="timer-box">
+              <div class="label">Elapsed</div>
+              <div class="value" id="elapsedDisplay">00:00:00</div>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <div class="num" id="checkinCount">0</div>
+                <div class="lbl">Check-ins</div>
+              </div>
+              <div class="stat">
+                <div class="num" id="totalNetTime">0h 0m (0)</div>
+                <div class="lbl">Total (elapsed × check-ins)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-stamps" style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;font-size:0.85rem;color:var(--muted);">
+            <div>Started: <strong id="startTimeDisplay" style="color:var(--text);">—</strong></div>
+            <div>Stopped: <strong id="stopTimeDisplay" style="color:var(--text);">—</strong></div>
+          </div>
+
+          <div class="checkin-form">
+            <div>
+              <label for="inpCall">Callsign</label>
+              <div class="call-row">
+                <input type="text" id="inpCall" placeholder="Callsign" maxlength="12" autocomplete="off" spellcheck="false" />
+                <button type="button" id="btnLookup" class="icon-btn" title="Lookup callsign" tabindex="-1">🔍</button>
+              </div>
+            </div>
+            <div>
+              <label for="inpName">Name</label>
+              <input type="text" id="inpName" placeholder="Name" />
+            </div>
+            <div>
+              <label for="inpLoc">Location</label>
+              <input type="text" id="inpLoc" placeholder="City, ST or Grid" />
+            </div>
+            <div class="full">
+              <label for="inpComment">Comment</label>
+              <input type="text" id="inpComment" placeholder="Traffic, notes…" />
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button id="btnAdd" class="primary" style="flex:1;">+ Add</button>
+              <button id="btnClearFields" class="ghost" title="Clear form (Esc)">Clear</button>
+            </div>
+          </div>
+          <!-- Horizontal matched callsigns (full width under the form) -->
+          <div id="callSuggestions" class="suggestions"></div>
+          <div class="lookup-status" id="lookupStatus"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>Check-ins <span id="listCount" style="font-weight:400;color:var(--muted);"></span></span>
+          <button id="btnClearCheckins" class="ghost" style="font-size:0.8rem;">Clear list</button>
+        </div>
+        <div class="panel-body" style="padding:0;">
+          <ul class="checkin-list" id="checkinList">
+            <li class="empty">No check-ins yet.<br>Add the <strong>Net Control Station (NCS)</strong> first — then you can start the net.</li>
+          </ul>
+        </div>
+      </div>
+      </div><!-- /tab-logger -->
+
+      <div id="tab-callup" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <span>MJARC Net Control Protocol</span>
+          </div>
+          <div class="panel-body">
+            <div class="script-block">
+              <h3>📋Net Preamble:</h3>
+              <p>Good evening to all. This is the Moose Jaw Amateur Radio Club 2 Meter Net. This net meets daily at 0300 UTC on the VE5CI repeater for the purpose of passing traffic, bulletins, or other items of interest to radio amateurs in the Moose Jaw area.</p>
+              <p>Your net manager is _____ (<span style="color:#c9211e;"><em>name &amp; call</em></span>) and your net controller for this evening is _____ (<span style="color:#c9211e;"><em>name &amp; call</em></span>).</p>
+            </div>
+
+            <div class="script-block">
+              <h3>ℹ️ Traffic:</h3>
+              <p>&emsp;🔺Do we have any stations with emergency or priority traffic?</p>
+              <p>&emsp;🔹Do we have any mobile or portable traffic?</p>
+              <p>&emsp;🔹Do we have any stations wishing to call another or who wish to check out early?</p>
+              <p>&emsp;🔹Do we have any visiting amateurs in the Moose Jaw area who wish to check in?</p>
+              <p>&emsp;🔹Is there any news of ill or hospitalized amateurs?</p>
+              <p>&emsp;🔹Is there any traffic or bulletins of amateur activities?</p>
+              <h3>✅ Check-ins:</h3>
+              <p>🧭 We will now take area check-ins:</p>
+              <p>&emsp;🔸Regina City and surrounding area?</p>
+              <p>&emsp;🔸Outside the City of Moose Jaw?</p>
+              <p>&emsp;🔸Moose Jaw City:
+              <p>&emsp;&emsp;🔸South Hill?</p>
+              <p>&emsp;&emsp;🔸North East?</p>
+              <p>&emsp;&emsp;🔸North West?</p>
+              <h3>🔔 Last Call:</h3>
+              <p>Last call for any late or missed stations from anywhere, or any other items of interest to radio amateurs?</p>
+              <h3>🏁 Net Close:</h3>
+              <p>With no further traffic or check-ins, I wish to thank all who participated this evening. The Moose Jaw Amateur Radio Club 2m net is now closed at _____ local time and the repeater is returned for general amateur use. Good evening to all. _____ (<span style="color:#c9211e;"><em>controller call</em></span>) is now clear.</p>
+            </div>
+              <div class="script-note">⚠️ NOTE: Net Control Stations, please send the net report to mjarc.ca@gmail.com</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-callup -->
+    </div>
+
+    <!-- RIGHT: Roster -->
+    <div class="roster-panel">
+      <div class="panel sticky-roster">
+        <div class="panel-header">
+          <span>Roster <span id="rosterCount" style="font-weight:400;color:var(--muted);"></span></span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button id="btnImportRoster" class="ghost" style="font-size:0.78rem;padding:5px 8px;" title="Import roster only from a previous export file">⬆ Roster only</button>
+            <button id="btnClearAcks" class="ghost" style="font-size:0.78rem;padding:5px 8px;" title="Clear all acknowledgements">Clear Acks</button>
+            <button id="btnClearRoster" class="ghost icon-btn" title="Clear entire roster">🗑</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0;">
+          <ul class="roster-list" id="rosterList">
+            <li class="empty">Roster is empty. Check-ins are added here automatically.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    MJARC Net Logger v0.1 · Data stored only in this browser · Export regularly · ? Help for instructions
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Settings</span>
+        <button class="ghost icon-btn" id="closeSettings">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px;">
+          QRZ.com XML Data subscription is optional. When enabled, <strong>Tab</strong> (or leaving the callsign field) looks up <em>new</em> callsigns automatically. Callsigns already in the roster are filled from stored data instead. Browser CORS often blocks QRZ; Callook.info is used as a free fallback for US callsigns.
+        </p>
+        <div class="form-row">
+          <label for="qrzUser">QRZ Username</label>
+          <input type="text" id="qrzUser" placeholder="Your QRZ login" autocomplete="username" />
+        </div>
+        <div class="form-row">
+          <label for="qrzPass">QRZ Password</label>
+          <input type="password" id="qrzPass" placeholder="Password" autocomplete="current-password" />
+        </div>
+        <div class="form-row">
+          <label>
+            <input type="checkbox" id="autoLookup" checked /> Auto-lookup on Tab / blur
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="ghost" id="cancelSettings">Cancel</button>
+        <button class="primary" id="saveSettings">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" style="display:none;">
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-header">
+        <span>How to use MJARC Net Logger</span>
+        <button class="ghost icon-btn" id="closeHelp">✕</button>
+      </div>
+      <div class="modal-body" style="font-size:0.92rem;line-height:1.55;max-height:70vh;overflow-y:auto;">
+        <h3 style="margin:0 0 8px;font-size:1rem;">Quick start</h3>
+        <ol style="margin:0 0 14px;padding-left:1.3em;">
+          <li>Enter the <strong>Net Control Station (NCS)</strong> callsign first and press <strong>Enter</strong> or <strong>+ Add</strong>.</li>
+          <li>Click <strong>▶ Start Net</strong> (enabled only after the first check-in).</li>
+          <li>Add more stations the same way. Click <strong>■ Stop Net</strong> when finished (auto-exports a JSON file).</li>
+        </ol>
+
+        <h3 style="margin:0 0 8px;font-size:1rem;">Entering callsigns</h3>
+        <ul style="margin:0 0 14px;padding-left:1.3em;">
+          <li><strong>Partial match:</strong> Type part of a call (e.g. <code>STZ</code>) — matching roster entries appear as chips under the form and the right-side roster filters. Click a chip (or press Enter if only one match) to add it immediately.</li>
+          <li><strong>Tab / blur:</strong> If the call is <em>already in the roster</em>, Name / Location / Comment fill from stored data. If it is <em>new</em>, a lookup runs (QRZ if configured, otherwise Callook for US calls).</li>
+          <li><strong>Enter</strong> in any of the four fields (Callsign, Name, Location, Comment) adds the check-in.</li>
+          <li>Duplicate callsigns in the same net are blocked.</li>
+        </ul>
+
+        <h3 style="margin:0 0 8px;font-size:1rem;">QRZ login</h3>
+        <p style="margin:0 0 14px;">
+          Click <strong>⚙ Settings</strong> in the header. Enter your QRZ username and password (XML Data subscription recommended). Credentials stay only in this browser. If QRZ is blocked by the browser, Callook.info is used automatically for US callsigns. Use the 🔍 button anytime for a manual lookup.
+        </p>
+
+        <h3 style="margin:0 0 8px;font-size:1rem;">Editing the check-in list</h3>
+        <ul style="margin:0 0 14px;padding-left:1.3em;">
+          <li><strong>Click any field</strong> (callsign, name, location, comment) to edit it in place. Press Enter or click away to save; Escape cancels.</li>
+          <li><strong>Move to</strong> — type a line number next to an entry to reorder it. Line 1 is always NCS.</li>
+          <li><strong>Checkbox</strong> on the left = acknowledge the check-in. Use <strong>Clear Acks</strong> in the roster header to reset all.</li>
+          <li><strong>✕</strong> deletes an entry.</li>
+        </ul>
+
+        <h3 style="margin:0 0 8px;font-size:1rem;">Roster (right panel)</h3>
+        <ul style="margin:0 0 14px;padding-left:1.3em;">
+          <li>Automatically stores stations from every check-in.</li>
+          <li><strong>Click a roster entry</strong> to add it straight to the current net.</li>
+          <li><strong>⬆ Roster only</strong> imports names from a previous export without loading a whole net.</li>
+        </ul>
+
+        <h3 style="margin:0 0 8px;font-size:1rem;">Tips</h3>
+        <ul style="margin:0;padding-left:1.3em;">
+          <li>Total time = elapsed net time × number of check-ins (shown as hours + minutes and total minutes).</li>
+          <li>Export / Import keep your net and roster. Data is stored only in this browser — export regularly.</li>
+          <li>Theme toggle (🌓) switches light / dark mode.</li>
+          <li>Use the <strong>Net Script</strong> tab for the MJARC 2 meter net preamble, check-in order, and close.</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="primary" id="closeHelpBtn">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="editModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="editTitle">Edit Check-in</span>
+        <button class="ghost icon-btn" id="closeEdit">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label for="editCall">Callsign</label>
+          <input type="text" id="editCall" style="text-transform:uppercase;" />
+        </div>
+        <div class="form-row">
+          <label for="editName">Name</label>
+          <input type="text" id="editName" />
+        </div>
+        <div class="form-row">
+          <label for="editLoc">Location</label>
+          <input type="text" id="editLoc" />
+        </div>
+        <div class="form-row">
+          <label for="editComment">Comment</label>
+          <input type="text" id="editComment" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="ghost" id="cancelEdit">Cancel</button>
+        <button class="primary" id="saveEdit">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const VERSION = "0.1";
+    const STORAGE_KEY = "MJARCNetLogger_v1";
+
+    // ---------- State ----------
+    let state = {
+      theme: "light",
+      qrzUser: "",
+      qrzPass: "",
+      autoLookup: true,
+      net: {
+        status: "idle", // idle | running | stopped
+        startTime: null,
+        endTime: null,
+        checkins: []
+      },
+      roster: [] // { call, name, location, comment, lastSeen }
+    };
+
+    let editContext = null; // { type: 'checkin'|'roster', index }
+    let timerInterval = null;
+
+    // ---------- Helpers ----------
+    function $(id) { return document.getElementById(id); }
+
+    function toast(msg, ms = 2600) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), ms);
+    }
+
+    function formatDuration(seconds) {
+      if (typeof seconds !== "number" || isNaN(seconds) || seconds < 0) seconds = 0;
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      return [h, m, s].map(v => String(v).padStart(2, "0")).join(":");
+    }
+
+    function nowISO() { return new Date().toISOString(); }
+
+    function toLocalTime(iso) {
+      if (!iso) return "—";
+      try {
+        return new Date(iso).toLocaleString(undefined, {
+          year: "numeric", month: "short", day: "numeric",
+          hour: "numeric", minute: "2-digit", second: "2-digit"
+        });
+      } catch {
+        return "—";
+      }
+    }
+
+    function normalizeCall(c) {
+      return (c || "").trim().toUpperCase().replace(/[^A-Z0-9\/]/g, "");
+    }
+
+    // ---------- Validation ----------
+    function asText(v) {
+      return typeof v === "string" ? v : (v == null ? "" : String(v));
+    }
+
+    function asTime(v) {
+      return typeof v === "string" && !isNaN(new Date(v).getTime()) ? v : null;
+    }
+
+    // Clean a roster list: normalized callsigns, no blanks, no duplicates, sorted
+    function cleanRoster(list) {
+      if (!Array.isArray(list)) throw new Error("roster is not a list");
+      const byCall = new Map();
+      list.forEach(r => {
+        if (!r || typeof r !== "object") return;
+        const call = normalizeCall(asText(r.call));
+        if (!call || byCall.has(call)) return;
+        byCall.set(call, {
+          call,
+          name: asText(r.name),
+          location: asText(r.location),
+          comment: asText(r.comment),
+          lastSeen: asTime(r.lastSeen)
+        });
+      });
+      return [...byCall.values()].sort((a, b) => a.call.localeCompare(b.call));
+    }
+
+    // Clean a net object; throws if it is not usable
+    function cleanNet(net) {
+      if (!net || typeof net !== "object") throw new Error("net is not an object");
+      const status = ["idle", "running", "stopped"].includes(net.status) ? net.status : "idle";
+      const checkins = (Array.isArray(net.checkins) ? net.checkins : [])
+        .filter(c => c && typeof c === "object" && normalizeCall(asText(c.call)))
+        .map((c, i) => ({
+          id: asText(c.id) || Date.now().toString(36) + Math.random().toString(36).slice(2),
+          call: normalizeCall(asText(c.call)),
+          name: asText(c.name),
+          location: asText(c.location),
+          comment: asText(c.comment),
+          time: asTime(c.time) || nowISO(),
+          isNCS: i === 0,
+          acked: c.acked === true
+        }));
+      const startTime = asTime(net.startTime);
+      return {
+        status: status === "running" && !startTime ? "idle" : status,
+        startTime,
+        endTime: asTime(net.endTime),
+        checkins
+      };
+    }
+
+    // ---------- Persistence ----------
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          state = { ...state, ...data };
+        }
+      } catch (e) {
+        console.warn("Load failed", e);
+      }
+      try { state.net = cleanNet(state.net); }
+      catch { state.net = { status: "idle", startTime: null, endTime: null, checkins: [] }; }
+      try { state.roster = cleanRoster(state.roster); }
+      catch { state.roster = []; }
+      applyTheme();
+      renderAll();
+      if (state.net.status === "running") startTimer();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        toast("Could not save to browser storage");
+      }
+    }
+
+    // ---------- Theme ----------
+    function applyTheme() {
+      document.documentElement.setAttribute("data-theme", state.theme);
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === "light" ? "dark" : "light";
+      applyTheme();
+      saveState();
+    }
+
+    // ---------- Timer & Stats ----------
+    function getElapsedSeconds() {
+      if (!state.net.startTime) return 0;
+      const startMs = new Date(state.net.startTime).getTime();
+      if (isNaN(startMs)) return 0;
+
+      let endMs;
+      if (state.net.status === "running") {
+        endMs = Date.now();
+      } else {
+        endMs = state.net.endTime ? new Date(state.net.endTime).getTime() : Date.now();
+      }
+      if (isNaN(endMs)) endMs = Date.now();
+
+      return Math.max(0, Math.floor((endMs - startMs) / 1000));
+    }
+
+    function formatTotalTime(minutes) {
+      if (!minutes) return "0h 0m (0)";
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}h ${m}m (${minutes})`;
+    }
+
+    function updateTimerDisplay() {
+      const elapsed = getElapsedSeconds();
+      $("elapsedDisplay").textContent = formatDuration(elapsed);
+      const count = state.net.checkins.length;
+      $("checkinCount").textContent = count;
+      const totalMinutes = Math.floor((elapsed * count) / 60);
+      $("totalNetTime").textContent = formatTotalTime(totalMinutes);
+      $("listCount").textContent = count ? `(${count})` : "";
+
+      // Local start / stop times
+      const startEl = $("startTimeDisplay");
+      const stopEl = $("stopTimeDisplay");
+      if (startEl) startEl.textContent = state.net.startTime ? toLocalTime(state.net.startTime) : "—";
+      if (stopEl) stopEl.textContent = (state.net.status !== "running" && state.net.endTime)
+        ? toLocalTime(state.net.endTime) : (state.net.status === "running" ? "Running…" : "—");
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimerDisplay, 1000);
+      updateTimerDisplay();
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      updateTimerDisplay();
+    }
+
+    // ---------- Net Control ----------
+    function startNet() {
+      if (state.net.status === "running") return;
+      if (state.net.status === "stopped" &&
+          !confirm("This net was already stopped. Start it again? The recorded start and stop times will be replaced.")) {
+        return;
+      }
+      if (state.net.checkins.length === 0) {
+        toast("Add the Net Control (first check-in) before starting the net");
+        $("inpCall").focus();
+        return;
+      }
+      state.net.status = "running";
+      state.net.startTime = nowISO();
+      state.net.endTime = null;
+      // Keep existing check-ins if any (e.g. after import)
+      saveState();
+      startTimer();
+      updateNetUI();
+      toast("Net started");
+      $("inpCall").focus();
+    }
+
+    function stopNet() {
+      if (state.net.status !== "running") return;
+      state.net.status = "stopped";
+      state.net.endTime = nowISO();
+      saveState();
+      stopTimer();
+      updateNetUI();
+      toast("Net stopped — exporting…");
+      // Automatic export on stop
+      setTimeout(() => exportData(), 300);
+    }
+
+    function updateNetUI() {
+      const s = state.net.status;
+      // Cannot start until at least one check-in (the NCS) exists
+      $("btnStart").disabled = s === "running" || state.net.checkins.length === 0;
+      $("btnStop").disabled = s !== "running";
+      const badge = $("netStateBadge");
+      const hint = $("ncsHint");
+      if (s === "running") {
+        badge.textContent = "● LIVE";
+        badge.style.color = "var(--success)";
+        if (hint) hint.style.display = "none";
+      } else if (s === "stopped") {
+        badge.textContent = "Stopped";
+        badge.style.color = "var(--warning)";
+        if (hint) hint.style.display = "none";
+      } else {
+        badge.textContent = state.net.checkins.length === 0
+          ? "Add NCS first"
+          : "Idle — ready to start";
+        badge.style.color = "var(--muted)";
+        if (hint) hint.style.display = state.net.checkins.length === 0 ? "block" : "none";
+      }
+    }
+
+    // ---------- Check-ins ----------
+    function addCheckin() {
+      const call = normalizeCall($("inpCall").value);
+      if (!call) {
+        toast("Enter a callsign");
+        $("inpCall").focus();
+        return;
+      }
+
+      // Prevent duplicate check-ins by callsign
+      const existing = state.net.checkins.find(c => c.call === call);
+      if (existing) {
+        toast(`${call} is already checked in`);
+        $("inpCall").focus();
+        return;
+      }
+
+      const entry = {
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+        call,
+        name: $("inpName").value.trim(),
+        location: $("inpLoc").value.trim(),
+        comment: $("inpComment").value.trim(),
+        time: nowISO(),
+        isNCS: state.net.checkins.length === 0,
+        acked: false
+      };
+
+      state.net.checkins.push(entry);
+      upsertRoster(entry);
+      clearForm();
+      saveState();
+      renderCheckins();
+      renderRoster();
+      updateTimerDisplay();
+      updateNetUI(); // enables Start button once first (NCS) entry exists
+      toast(entry.isNCS ? `Net Control ${call} added` : `${call} checked in`);
+      $("inpCall").focus();
+
+      // Keep the newest check-in visible
+      setTimeout(() => {
+        const list = $("checkinList");
+        const last = list && list.querySelector(".checkin-item:last-child");
+        if (last) last.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 50);
+    }
+
+    function clearForm() {
+      $("inpCall").value = "";
+      $("inpName").value = "";
+      $("inpLoc").value = "";
+      $("inpComment").value = "";
+      $("lookupStatus").textContent = "";
+      $("lookupStatus").className = "lookup-status";
+      const box = $("callSuggestions");
+      if (box) {
+        box.style.display = "none";
+        box.innerHTML = "";
+      }
+      // Restore full roster list
+      renderRoster("");
+    }
+
+    function deleteCheckin(index) {
+      if (!confirm(`Delete ${state.net.checkins[index].call}?`)) return;
+      state.net.checkins.splice(index, 1);
+      // Re-flag first as NCS if list not empty
+      if (state.net.checkins.length > 0) {
+        state.net.checkins.forEach((c, i) => c.isNCS = i === 0);
+      }
+      saveState();
+      renderCheckins();
+      updateTimerDisplay();
+      updateNetUI();
+    }
+
+    function moveCheckinTo(fromIndex, toLine) {
+      const arr = state.net.checkins;
+      const toIndex = parseInt(toLine, 10) - 1; // 1-based to 0-based
+      if (isNaN(toIndex) || toIndex < 0 || toIndex >= arr.length || toIndex === fromIndex) {
+        renderCheckins(); // reset any invalid input
+        return;
+      }
+      const [item] = arr.splice(fromIndex, 1);
+      arr.splice(toIndex, 0, item);
+      // Keep NCS flag on position 0
+      arr.forEach((c, i) => c.isNCS = i === 0);
+      saveState();
+      renderCheckins();
+      toast(`Moved to line ${toIndex + 1}`);
+    }
+
+    function saveInlineField(index, field, value) {
+      const c = state.net.checkins[index];
+      if (!c) return;
+      if (field === "call") {
+        const call = normalizeCall(value);
+        if (!call) {
+          toast("Callsign required");
+          renderCheckins();
+          return;
+        }
+        // Check for duplicate (excluding self)
+        const dup = state.net.checkins.find((x, i) => i !== index && x.call === call);
+        if (dup) {
+          toast(`${call} is already checked in`);
+          renderCheckins();
+          return;
+        }
+        c.call = call;
+      } else {
+        c[field] = (value || "").trim();
+      }
+      upsertRoster(c);
+      saveState();
+      // Re-render only if call changed (to update NCS badge etc.), otherwise keep focus-friendly
+      if (field === "call") renderCheckins();
+      else {
+        // light update of roster in case name/loc changed
+        renderRoster($("inpCall") ? $("inpCall").value : "");
+      }
+    }
+
+    function openEditCheckin(index) {
+      editContext = { type: "checkin", index };
+      const c = state.net.checkins[index];
+      $("editTitle").textContent = "Edit Check-in";
+      $("editCall").value = c.call;
+      $("editName").value = c.name || "";
+      $("editLoc").value = c.location || "";
+      $("editComment").value = c.comment || "";
+      $("editModal").style.display = "flex";
+      $("editCall").focus();
+    }
+
+    function saveEdit() {
+      if (!editContext) return;
+      const call = normalizeCall($("editCall").value);
+      if (!call) { toast("Callsign required"); return; }
+
+      if (editContext.type === "checkin") {
+        if (state.net.checkins.some((x, i) => i !== editContext.index && x.call === call)) {
+          toast(`${call} is already checked in`);
+          return;
+        }
+        const c = state.net.checkins[editContext.index];
+        c.call = call;
+        c.name = $("editName").value.trim();
+        c.location = $("editLoc").value.trim();
+        c.comment = $("editComment").value.trim();
+        upsertRoster(c);
+      } else if (editContext.type === "roster") {
+        if (state.roster.some((x, i) => i !== editContext.index && x.call === call)) {
+          toast(`${call} is already in the roster`);
+          return;
+        }
+        const r = state.roster[editContext.index];
+        // If call changes, we treat as replace
+        r.call = call;
+        r.name = $("editName").value.trim();
+        r.location = $("editLoc").value.trim();
+        r.comment = $("editComment").value.trim();
+        state.roster.sort((a, b) => a.call.localeCompare(b.call));
+      }
+      saveState();
+      renderCheckins();
+      renderRoster();
+      closeEdit();
+      toast("Saved");
+    }
+
+    function closeEdit() {
+      $("editModal").style.display = "none";
+      editContext = null;
+    }
+
+    function clearCheckins() {
+      if (state.net.checkins.length === 0) return;
+      if (!confirm("Clear all check-ins from this net?")) return;
+      state.net.checkins = [];
+      saveState();
+      renderCheckins();
+      updateTimerDisplay();
+      updateNetUI();
+      toast("Check-in list cleared");
+    }
+
+    // ---------- Roster ----------
+    function upsertRoster(entry) {
+      const call = normalizeCall(entry.call);
+      let found = state.roster.find(r => r.call === call);
+      if (found) {
+        if (entry.name) found.name = entry.name;
+        if (entry.location) found.location = entry.location;
+        if (entry.comment) found.comment = entry.comment;
+        found.lastSeen = nowISO();
+      } else {
+        state.roster.push({
+          call,
+          name: entry.name || "",
+          location: entry.location || "",
+          comment: entry.comment || "",
+          lastSeen: nowISO()
+        });
+        // Keep roster sorted by call
+        state.roster.sort((a, b) => a.call.localeCompare(b.call));
+      }
+    }
+
+    function deleteRoster(index) {
+      if (!confirm(`Remove ${state.roster[index].call} from roster?`)) return;
+      state.roster.splice(index, 1);
+      saveState();
+      renderRoster();
+    }
+
+    function clearRoster() {
+      if (state.roster.length === 0) return;
+      if (!confirm("Clear the entire roster? This cannot be undone.")) return;
+      state.roster = [];
+      saveState();
+      renderRoster();
+      toast("Roster cleared");
+    }
+
+    function openEditRoster(index) {
+      editContext = { type: "roster", index };
+      const r = state.roster[index];
+      $("editTitle").textContent = "Edit Roster Entry";
+      $("editCall").value = r.call;
+      $("editName").value = r.name || "";
+      $("editLoc").value = r.location || "";
+      $("editComment").value = r.comment || "";
+      $("editModal").style.display = "flex";
+    }
+
+    function useRosterEntry(index) {
+      // Clicking a roster entry immediately adds it as a check-in
+      const r = state.roster[index];
+      $("inpCall").value = r.call;
+      $("inpName").value = r.name || "";
+      $("inpLoc").value = r.location || "";
+      $("inpComment").value = r.comment || "";
+      addCheckin();
+    }
+
+    // ---------- Lookup ----------
+    let lookupInFlight = null;
+
+    // True while the callsign field still holds the call this lookup was for
+    function stillCurrent(call) {
+      return normalizeCall($("inpCall").value) === call;
+    }
+
+    async function lookupCallsign(call) {
+      call = normalizeCall(call);
+      if (!call || lookupInFlight === call) return;
+      lookupInFlight = call;
+      try {
+        await runLookup(call);
+      } finally {
+        if (lookupInFlight === call) lookupInFlight = null;
+      }
+    }
+
+    async function runLookup(call) {
+
+      const status = $("lookupStatus");
+      status.textContent = "Looking up…";
+      status.className = "lookup-status";
+
+      // 1. Try QRZ if credentials present
+      if (state.qrzUser && state.qrzPass) {
+        try {
+          const sessionUrl = `https://xmldata.qrz.com/xml/current/?username=${encodeURIComponent(state.qrzUser)}&password=${encodeURIComponent(state.qrzPass)}`;
+          const sessRes = await fetch(sessionUrl);
+          if (!sessRes.ok) throw new Error("QRZ session failed");
+          const sessText = await sessRes.text();
+          const parser = new DOMParser();
+          const sessDoc = parser.parseFromString(sessText, "text/xml");
+          const key = sessDoc.querySelector("Key")?.textContent;
+          const err = sessDoc.querySelector("Error")?.textContent;
+          if (err) throw new Error(err);
+          if (!key) throw new Error("No session key");
+
+          const lookupUrl = `https://xmldata.qrz.com/xml/current/?s=${key}&callsign=${encodeURIComponent(call)}`;
+          const lookRes = await fetch(lookupUrl);
+          const lookText = await lookRes.text();
+          const lookDoc = parser.parseFromString(lookText, "text/xml");
+          const callNode = lookDoc.querySelector("Callsign");
+          if (callNode) {
+            if (!stillCurrent(call)) return;
+            const fname = callNode.querySelector("fname")?.textContent || "";
+            const name = callNode.querySelector("name")?.textContent || "";
+            const fullName = (fname + " " + name).trim();
+            const city = callNode.querySelector("addr2")?.textContent || "";
+            const state = callNode.querySelector("state")?.textContent || "";
+            const country = callNode.querySelector("country")?.textContent || "";
+            const grid = callNode.querySelector("grid")?.textContent || "";
+            const loc = [city, state, country].filter(Boolean).join(", ") || grid;
+
+            if (fullName) $("inpName").value = fullName;
+            if (loc) $("inpLoc").value = loc;
+            status.textContent = `QRZ: ${fullName || call}`;
+            status.className = "lookup-status ok";
+            return;
+          }
+        } catch (e) {
+          console.warn("QRZ lookup failed (CORS or auth):", e.message);
+          // fall through to Callook
+        }
+      }
+
+      // 2. Callook.info (CORS friendly)
+      try {
+        const res = await fetch(`https://callook.info/${encodeURIComponent(call)}/json`);
+        if (!res.ok) throw new Error("Callook HTTP " + res.status);
+        const data = await res.json();
+        if (!stillCurrent(call)) return;
+        if (data.status === "VALID") {
+          const name = data.name || "";
+          const locParts = [];
+          if (data.address?.line2) locParts.push(data.address.line2);
+          else if (data.location?.latitude) locParts.push(`Grid approx`);
+          if (data.location?.gridsquare) locParts.push(data.location.gridsquare);
+          const loc = locParts.join(" · ") || (data.address ? `${data.address.line1 || ""}`.trim() : "");
+
+          if (name) $("inpName").value = name;
+          if (loc) $("inpLoc").value = loc;
+          status.textContent = `Callook: ${name || call}`;
+          status.className = "lookup-status ok";
+          return;
+        } else {
+          status.textContent = "Not found in Callook";
+          status.className = "lookup-status err";
+        }
+      } catch (e) {
+        if (!stillCurrent(call)) return;
+        status.textContent = "Lookup failed (network / CORS)";
+        status.className = "lookup-status err";
+        console.warn(e);
+      }
+
+      // Offer QRZ page after the reason the lookup failed
+      status.innerHTML = `${escapeHtml(status.textContent)}. <a href="https://www.qrz.com/db/${encodeURIComponent(call)}" target="_blank" rel="noopener" style="color:var(--accent);">Open ${escapeHtml(call)} on QRZ</a>`;
+    }
+
+    // ---------- Render ----------
+    function toggleAck(index) {
+      const c = state.net.checkins[index];
+      if (!c) return;
+      c.acked = !c.acked;
+      saveState();
+      renderCheckins();
+    }
+
+    function renderCheckins() {
+      const list = $("checkinList");
+      const items = state.net.checkins;
+      if (items.length === 0) {
+        list.innerHTML = `<li class="empty">No check-ins yet.<br>Add the <strong>Net Control Station (NCS)</strong> first — then you can start the net.</li>`;
+        return;
+      }
+      list.innerHTML = items.map((c, i) => `
+        <li class="checkin-item ${c.isNCS ? "ncs" : ""} ${c.acked ? "acked" : ""}">
+          <div class="ack-box" title="Acknowledge check-in">
+            <input type="checkbox" ${c.acked ? "checked" : ""}
+                   onchange="toggleAck(${i})"
+                   aria-label="Acknowledge ${escapeHtml(c.call)}">
+          </div>
+          <div class="pos">${i + 1}</div>
+          <div class="call editable" contenteditable="true" data-idx="${i}" data-field="call"
+               title="Click to edit">${escapeHtml(c.call)}</div>
+          <div class="meta editable" contenteditable="true" data-idx="${i}" data-field="name"
+               title="Click to edit">${escapeHtml(c.name || "")}</div>
+          <div class="meta editable" contenteditable="true" data-idx="${i}" data-field="location"
+               title="Click to edit">${escapeHtml(c.location || "")}</div>
+          <div class="comment editable" contenteditable="true" data-idx="${i}" data-field="comment"
+               title="Click to edit">${escapeHtml(c.comment || "")}</div>
+          <div class="item-actions">
+            <div class="move-to-wrap" title="Move this entry to a different line number">
+              <span>Move to</span>
+              <input type="number" min="1" max="${items.length}" value="${i + 1}"
+                     onchange="moveCheckinTo(${i}, this.value)"
+                     onkeydown="if(event.key==='Enter'){this.blur();}">
+            </div>
+            ${c.isNCS ? '<span class="ncs-badge">NCS</span>' : ""}
+            <button class="icon-btn" onclick="deleteCheckin(${i})" title="Delete">✕</button>
+          </div>
+        </li>
+      `).join("");
+
+      // Wire inline edit save on blur / Enter
+      list.querySelectorAll(".editable").forEach(el => {
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            el.blur();
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            el.dataset.cancelled = "1"; // the blur that follows must not save
+            renderCheckins(); // cancel
+          }
+        });
+        el.addEventListener("blur", () => {
+          if (el.dataset.cancelled) return;
+          const idx = parseInt(el.dataset.idx, 10);
+          const field = el.dataset.field;
+          const value = el.textContent.trim();
+          saveInlineField(idx, field, value);
+        });
+      });
+    }
+
+    function renderRoster(filterText) {
+      const list = $("rosterList");
+      const partial = normalizeCall(filterText || ($("inpCall") ? $("inpCall").value : "") || "");
+      // Keep each entry's index in state.roster for edit/delete
+      let entries = state.roster.map((r, idx) => ({ r, idx }));
+      let filtered = false;
+      if (partial.length >= 1) {
+        entries = entries.filter(({ r }) => r.call.includes(partial));
+        filtered = true;
+      }
+      $("rosterCount").textContent = filtered
+        ? `(${entries.length}/${state.roster.length})`
+        : (state.roster.length ? `(${state.roster.length})` : "");
+
+      if (state.roster.length === 0) {
+        list.innerHTML = `<li class="empty">Roster is empty. Check-ins are added here automatically.</li>`;
+        return;
+      }
+      if (entries.length === 0) {
+        list.innerHTML = `<li class="empty">No roster matches for “${escapeHtml(partial)}”</li>`;
+        return;
+      }
+      // Map back to original index for edit/delete
+      list.innerHTML = entries.map(({ r, idx: origIdx }) => {
+        return `
+        <li class="roster-item" title="Click to add as check-in">
+          <div class="call" onclick="useRosterEntry(${origIdx})">${escapeHtml(r.call)}</div>
+          <div class="info" onclick="useRosterEntry(${origIdx})">${escapeHtml(r.name || "")}${r.location ? " · " + escapeHtml(r.location) : ""}</div>
+          <div class="item-actions">
+            <button class="icon-btn" onclick="event.stopPropagation();openEditRoster(${origIdx})" title="Edit">✎</button>
+            <button class="icon-btn" onclick="event.stopPropagation();deleteRoster(${origIdx})" title="Remove">✕</button>
+          </div>
+        </li>`;
+      }).join("");
+    }
+
+    function renderAll() {
+      updateNetUI();
+      updateTimerDisplay();
+      renderCheckins();
+      renderRoster();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // ---------- Export / Import ----------
+    function exportData() {
+      const payload = {
+        app: "MJARC Net Logger",
+        version: VERSION,
+        exportedAt: nowISO(),
+        net: state.net,
+        roster: state.roster,
+        theme: state.theme
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      // Local date and time, YYYY-MM-DD-HH-MM-SS
+      const d = new Date();
+      const pad = n => String(n).padStart(2, "0");
+      const ts = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-` +
+                 `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+      a.href = url;
+      a.download = `MJARC_Net_${ts}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast("Exported");
+    }
+
+    function importData(file, rosterOnly = false) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || (!data.net && !data.roster)) {
+            toast("Invalid file");
+            return;
+          }
+          if (rosterOnly) {
+            if (Array.isArray(data.roster)) {
+              cleanRoster(data.roster).forEach(r => upsertRoster(r));
+              // also pull unique from net.checkins if present
+              if (Array.isArray(data.net?.checkins)) cleanRoster(data.net.checkins).forEach(c => upsertRoster(c));
+              saveState();
+              renderRoster();
+              toast(`Roster updated (${state.roster.length} entries)`);
+            } else {
+              toast("No roster found in file");
+            }
+          } else {
+            // Validate everything before touching state, so a bad file changes nothing
+            let net, roster;
+            try {
+              net = data.net ? cleanNet(data.net) : null;
+              roster = Array.isArray(data.roster) ? cleanRoster(data.roster) : null;
+            } catch (verr) {
+              toast("Import failed: " + verr.message);
+              return;
+            }
+            if (net) state.net = net;
+            if (roster) state.roster = roster;
+            if (data.theme === "light" || data.theme === "dark") state.theme = data.theme;
+            applyTheme();
+            saveState();
+            if (state.net.status === "running") startTimer();
+            else stopTimer();
+            renderAll();
+            toast("Import complete");
+          }
+        } catch (err) {
+          toast("Import failed: bad JSON");
+          console.error(err);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ---------- Settings ----------
+    function openSettings() {
+      $("qrzUser").value = state.qrzUser || "";
+      $("qrzPass").value = state.qrzPass || "";
+      $("autoLookup").checked = state.autoLookup !== false;
+      $("settingsModal").style.display = "flex";
+    }
+
+    function saveSettings() {
+      state.qrzUser = $("qrzUser").value.trim();
+      state.qrzPass = $("qrzPass").value;
+      state.autoLookup = $("autoLookup").checked;
+      saveState();
+      $("settingsModal").style.display = "none";
+      toast("Settings saved");
+    }
+
+    // ---------- Event wiring ----------
+    document.addEventListener("DOMContentLoaded", () => {
+      loadState();
+
+      $("btnTheme").addEventListener("click", toggleTheme);
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tab = btn.dataset.tab;
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b === btn));
+          document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+          const pane = document.getElementById("tab-" + tab);
+          if (pane) pane.classList.add("active");
+        });
+      });
+      $("btnSettings").addEventListener("click", openSettings);
+      $("closeSettings").addEventListener("click", () => $("settingsModal").style.display = "none");
+      $("cancelSettings").addEventListener("click", () => $("settingsModal").style.display = "none");
+      $("saveSettings").addEventListener("click", saveSettings);
+
+      $("btnHelp").addEventListener("click", () => { $("helpModal").style.display = "flex"; });
+      $("closeHelp").addEventListener("click", () => { $("helpModal").style.display = "none"; });
+      $("closeHelpBtn").addEventListener("click", () => { $("helpModal").style.display = "none"; });
+      $("helpModal").addEventListener("click", (e) => {
+        if (e.target === $("helpModal")) $("helpModal").style.display = "none";
+      });
+
+      $("btnStart").addEventListener("click", startNet);
+      $("btnStop").addEventListener("click", stopNet);
+
+      $("btnAdd").addEventListener("click", addCheckin);
+      $("btnLookup").addEventListener("click", () => lookupCallsign($("inpCall").value));
+      $("btnClearFields").addEventListener("click", clearForm);
+
+      // ----- Roster suggestions on partial callsign -----
+      let sugIndex = -1; // keyboard highlight
+
+      function hideSuggestions() {
+        const box = $("callSuggestions");
+        if (box) {
+          box.style.display = "none";
+          box.innerHTML = "";
+        }
+        sugIndex = -1;
+      }
+
+      function showSuggestions(matches) {
+        const box = $("callSuggestions");
+        if (!matches.length) {
+          hideSuggestions();
+          return;
+        }
+        box.innerHTML = matches.map((r, i) => `
+          <div class="sug-item" data-idx="${i}" title="${escapeHtml((r.name || "") + (r.location ? " · " + r.location : ""))}">
+            <span class="sug-call">${escapeHtml(r.call)}</span>
+            ${r.name ? `<span class="sug-info">${escapeHtml(r.name)}</span>` : ""}
+          </div>
+        `).join("");
+        box.style.display = "flex";
+        sugIndex = -1;
+
+        // Click handlers
+        box.querySelectorAll(".sug-item").forEach(el => {
+          el.addEventListener("mousedown", (e) => {
+            e.preventDefault(); // keep focus on input
+            const idx = parseInt(el.dataset.idx, 10);
+            selectSuggestion(matches[idx]);
+          });
+        });
+      }
+
+      function selectSuggestion(entry) {
+        // Clicking a suggestion fills the form and adds it as a check-in immediately
+        $("inpCall").value = entry.call;
+        $("inpName").value = entry.name || "";
+        $("inpLoc").value = entry.location || "";
+        $("inpComment").value = entry.comment || "";
+        hideSuggestions();
+        addCheckin();
+      }
+
+      function getCurrentMatches() {
+        const partial = normalizeCall($("inpCall").value);
+        if (partial.length < 1) return [];
+        // Substring match so "stz" finds KC3STZ, K3STZ, etc.
+        return state.roster
+          .filter(r => r.call.includes(partial))
+          .slice(0, 20);
+      }
+
+      $("inpCall").addEventListener("input", () => {
+        const matches = getCurrentMatches();
+        showSuggestions(matches);
+        // Also filter the main roster list on the right
+        renderRoster($("inpCall").value);
+      });
+
+      // Enter on any entry field adds the check-in
+      ["inpName", "inpLoc", "inpComment"].forEach(id => {
+        $(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addCheckin();
+          }
+        });
+      });
+
+      $("inpCall").addEventListener("keydown", (e) => {
+        const box = $("callSuggestions");
+        const items = box.querySelectorAll(".sug-item");
+        const matches = getCurrentMatches();
+
+        if (e.key === "ArrowDown" && items.length) {
+          e.preventDefault();
+          sugIndex = Math.min(sugIndex + 1, items.length - 1);
+          items.forEach((el, i) => el.classList.toggle("active", i === sugIndex));
+          items[sugIndex]?.scrollIntoView({ block: "nearest" });
+        } else if (e.key === "ArrowUp" && items.length) {
+          e.preventDefault();
+          sugIndex = Math.max(sugIndex - 1, 0);
+          items.forEach((el, i) => el.classList.toggle("active", i === sugIndex));
+          items[sugIndex]?.scrollIntoView({ block: "nearest" });
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          // If a suggestion is highlighted, use it (selectSuggestion already adds)
+          if (sugIndex >= 0 && matches[sugIndex]) {
+            selectSuggestion(matches[sugIndex]);
+          } else {
+            // Add what was typed; if it is a roster call exactly, fill any blank fields from the roster
+            const typed = normalizeCall($("inpCall").value);
+            const exact = state.roster.find(r => r.call === typed);
+            if (exact) {
+              if (!$("inpName").value) $("inpName").value = exact.name || "";
+              if (!$("inpLoc").value) $("inpLoc").value = exact.location || "";
+              if (!$("inpComment").value) $("inpComment").value = exact.comment || "";
+            }
+            hideSuggestions();
+            addCheckin();
+          }
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          if (box.style.display !== "none") {
+            hideSuggestions();
+          } else {
+            clearForm();
+          }
+        } else if (e.key === "Tab") {
+          const call = normalizeCall($("inpCall").value);
+          if (!call) return;
+          const rosterEntry = state.roster.find(r => r.call === call);
+          if (rosterEntry) {
+            // Already in roster — fill fields from stored data
+            if (!$("inpName").value) $("inpName").value = rosterEntry.name || "";
+            if (!$("inpLoc").value) $("inpLoc").value = rosterEntry.location || "";
+            if (!$("inpComment").value) $("inpComment").value = rosterEntry.comment || "";
+          } else if (state.autoLookup) {
+            // New callsign — do QRZ/Callook lookup
+            setTimeout(() => lookupCallsign(call), 0);
+          }
+        }
+      });
+
+      $("inpCall").addEventListener("blur", () => {
+        // Delay so click on suggestion can register
+        setTimeout(() => {
+          hideSuggestions();
+          if (!$("inpCall").value.trim()) {
+            renderRoster(""); // restore full roster when field empty
+          } else {
+            const call = normalizeCall($("inpCall").value);
+            const rosterEntry = state.roster.find(r => r.call === call);
+            if (rosterEntry) {
+              // Fill from roster if fields are still empty
+              if (!$("inpName").value) $("inpName").value = rosterEntry.name || "";
+              if (!$("inpLoc").value) $("inpLoc").value = rosterEntry.location || "";
+              if (!$("inpComment").value) $("inpComment").value = rosterEntry.comment || "";
+            } else if (state.autoLookup) {
+              lookupCallsign(call);
+            }
+          }
+        }, 150);
+      });
+
+      // Global Escape also clears the form when focus is elsewhere in the entry area
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const active = document.activeElement;
+          if (active && (active.id === "inpCall" || active.id === "inpName" ||
+                         active.id === "inpLoc" || active.id === "inpComment")) {
+            // already handled in inpCall for Escape, but clear for other fields
+            if (active.id !== "inpCall") {
+              clearForm();
+              $("inpCall").focus();
+            }
+          }
+        }
+      });
+
+      $("btnClearCheckins").addEventListener("click", clearCheckins);
+      $("btnClearRoster").addEventListener("click", clearRoster);
+
+      $("btnClearAcks").addEventListener("click", () => {
+        if (state.net.checkins.length === 0) return;
+        if (!confirm("Clear all acknowledgements?")) return;
+        state.net.checkins.forEach(c => c.acked = false);
+        saveState();
+        renderCheckins();
+        toast("All acknowledgements cleared");
+      });
+
+      $("btnExport").addEventListener("click", exportData);
+      $("btnImport").addEventListener("click", () => {
+        $("importFile").dataset.mode = "full";
+        $("importFile").click();
+      });
+      $("btnImportRoster").addEventListener("click", () => {
+        $("importFile").dataset.mode = "roster";
+        $("importFile").click();
+      });
+
+      $("importFile").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          importData(file, e.target.dataset.mode === "roster");
+        }
+        e.target.value = "";
+      });
+
+      $("closeEdit").addEventListener("click", closeEdit);
+      $("cancelEdit").addEventListener("click", closeEdit);
+      $("saveEdit").addEventListener("click", saveEdit);
+
+      // Make functions available for inline onclick
+      window.moveCheckinTo = moveCheckinTo;
+      window.toggleAck = toggleAck;
+      window.deleteCheckin = deleteCheckin;
+      window.openEditCheckin = openEditCheckin; // still used for roster edits
+      window.openEditRoster = openEditRoster;
+      window.deleteRoster = deleteRoster;
+      window.useRosterEntry = useRosterEntry;
+    });
+  </script>
+</body>
+</html>
